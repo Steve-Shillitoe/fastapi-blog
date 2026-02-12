@@ -10,17 +10,22 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 posts: list[dict] = [
     {
         "id": 1,
-        "author": "Corey Schafer",
-        "title": "FastAPI is Awesome",
-        "content": "This framework is really easy to use and super fast.",
-        "date_posted": "April 20, 2025",
+        "author": "Steve Shillitoe",
+        "title": "FastAPI vs Flask",
+        "content": "FastAPI is better than Flask "
+        "because it provides built-in data validation, automatic interactive API documentation, and high performance via async support "
+        "and type hints—while requiring far less boilerplate for production-ready APIs.",
+        "date_posted": "February 12, 2026",
     },
     {
         "id": 2,
-        "author": "Jane Doe",
-        "title": "Python is Great for Web Development",
-        "content": "Python is a great language for web development, and FastAPI makes it even better.",
-        "date_posted": "April 21, 2025",
+        "author": "Steve Shillitoe",
+        "title": "But is FastAPI always better than Flask?",
+        "content": "Flask remains better than FastAPI for many projects because it is simpler, "
+        "more flexible, and more mature, with a vast ecosystem and fewer abstractions—making it "
+        "easier to understand, customize, and maintain for small to medium applications "
+        "where FastAPI`s complexity and async model add unnecessary overhead.",
+        "date_posted": "February 12, 2026",
     },
 ]
 
@@ -32,7 +37,7 @@ def home(request: Request):
                                       {"posts":posts, "title":"Home"})
 
 @app.get("/posts/{post_id}")
-def get_post(request: Request, post_id:int):
+def post_page(request: Request, post_id:int):
     for post in posts:
         if post.get("id") == post_id:
             title = post["title"][:50]
