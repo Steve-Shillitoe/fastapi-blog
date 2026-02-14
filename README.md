@@ -8,7 +8,7 @@ Additionally, **Bootstrap** is used for styling. Consequently, the application i
 **Pydantic schemas** are used to validate API requests and responses in FastAPI. **Pydantic schemas** define the API contract - what data goes in and what comes out - and **FastAPI** uses them for validation, serialization, and automatic documentation. Consequently this project contains a schemas file with request and response models, 
 that have field validations for minimum and maximum length for strings. 
 
-This project uses **SQLAlchemy 2.0** as the ORM to manage database interactions with a local **SQLite** database. SQLAlchemy provides a clean separation between application logic and persistence by mapping Python classes to database tables using declarative models. The ```engine`` establishes the database connection, ``SessionLocal`` manages transactional sessions, and the declarative ``Base`` class allows models to inherit consistent metadata. This approach ensures type safety, maintainable schema definitions, and database-agnostic flexibility should the project later migrate from SQLite to PostgreSQL or another production-grade database.
+This project uses **SQLAlchemy 2.0** as the ORM to manage database interactions with a local **SQLite** database. SQLAlchemy provides a clean separation between application logic and persistence by mapping Python classes to database tables using declarative models. The ```engine``` establishes the database connection, ```SessionLocal``` manages transactional sessions, and the declarative ```Base``` class allows models to inherit consistent metadata. This approach ensures type safety, maintainable schema definitions, and database-agnostic flexibility should the project later migrate from SQLite to PostgreSQL or another production-grade database.
 
 ## Setting up the application for development
 ### Dependency Management with uv
@@ -45,6 +45,7 @@ uv fastapi run dev main.py
 ```
 **dev** mode gives us automatic reload of the web server when code is changed.
 Open a browser window with the url **localhost:8000** to view the web application.
+
 
 
 
