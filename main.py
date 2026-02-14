@@ -159,28 +159,56 @@ def get_post(post_id: int, db: Annotated[Session, Depends(get_db)]):
 
 #update post
 @app.put("/api/posts/{post_id}", response_model=PostResponse)
-def update_post_full(post_id: int, post_data:PostCreate, db: Annotated[Session, Depends(get_db)]):
+def update_post_full(
+    post_id: int,
+    post_data: PostCreate,
+    db: Annotated[Session, Depends(get_db)],
+):
     result = db.execute(select(Post).where(Post.id == post_id))
     post = result.scalars().first()
-    # We need to check that the post we wish to update, exists
     if not post:
-         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
-    
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
+
     if post_data.user_id != post.user_id:
-        #check does user exist?
-        result = db.execute(select(User).where(User.id == post_data.user_id))
+        result = db.execute(
+            select(User).where(User.id == post_data.user_id),
+        )
         user = result.scalars().first()
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found",
             )
-        
+
     post.title = post_data.title
     post.content = post_data.content
     post.user_id = post_data.user_id
 
-    db.commit
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+@app.patch("/api/posts/{post_id}", response_model=PostResponse)
+def update_post_partial(
+    post_id: int,
+    post_data: PostUpdate,
+    db: Annotated[Session, Depends(get_db)],
+):
+    result = db.execute(select(Post).where(Post.id == post_id))
+    post = result.scalars().first()
+    if not post:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Post not found"
+        )
+
+    update_data = post_data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(post, field, value)
+
+    db.commit()
     db.refresh(post)
     return post
 
