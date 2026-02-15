@@ -23,7 +23,7 @@ class User(Base):
     # Use string-based class names in relationships (e.g., "Post", "User")
     # as a SQLAlchemy best practice to avoid import order issues
     # and forward-reference problems when models reference each other.
-    posts: Mapped[list["Post"]] = relationship(back_populates="author")
+    posts: Mapped[list["Post"]] = relationship(back_populates="author", cascade="all, delete-orphan")
 
     @property
     def image_path(self) -> str:
