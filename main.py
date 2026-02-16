@@ -42,7 +42,7 @@ app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
 @app.get("/posts", include_in_schema=False, name="posts")
 async def home(request: Request, db: Annotated[AsyncSession, Depends(get_db)]):
     result = await db.execute(
-        select(Post).options(selectinload(Post.author)),
+        select(Post).options(selectinload(Post.author)).order_by(Post.date_posted.desc()),
     )
     posts = result.scalars().all()
     return templates.TemplateResponse(
@@ -90,7 +90,7 @@ async def user_posts_page(
     result = await db.execute(
         select(Post)
         .options(selectinload(Post.author))
-        .where(Post.user_id == user_id),
+        .where(Post.user_id == user_id).order_by(Post.date_posted.desc()),
     )
     posts = result.scalars().all()
     return templates.TemplateResponse(
