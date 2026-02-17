@@ -5,12 +5,12 @@ from pwdlib import PasswordHash
 
 from config import settings
 
-password_hash = PasswordHash.recommended
+password_hash = PasswordHash.recommended()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/users/token")
 
 def hash_password(password:str) -> str:
-    return password_hash(password)
+    return password_hash.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
