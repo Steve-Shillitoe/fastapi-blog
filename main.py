@@ -100,6 +100,27 @@ async def user_posts_page(
     )
 
 
+@app.get("/login", include_in_schema=False)
+async def login_page(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "login.html",
+        {"title": "Login"},
+    )
+
+
+@app.get("/register", include_in_schema=False)
+async def register_page(request: Request):
+    return templates.TemplateResponse(
+        "register.html",
+        {
+            "request": request,
+            "title": "Register",
+        },
+    )
+
+
+
 @app.exception_handler(StarletteHTTPException)
 async def general_http_exception_handler(
     request: Request,
@@ -115,15 +136,16 @@ async def general_http_exception_handler(
     )
 
     return templates.TemplateResponse(
-        request,
-        "error.html",
-        {
-            "status_code": exception.status_code,
-            "title": exception.status_code,
-            "message": message,
-        },
-        status_code=exception.status_code,
+    "error.html",
+    {
+        "request": request,
+        "status_code": exception.status_code,
+        "title": exception.status_code,
+        "message": message,
+    },
+    status_code=exception.status_code,
     )
+
 
 
 @app.exception_handler(RequestValidationError)
