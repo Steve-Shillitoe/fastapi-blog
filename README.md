@@ -51,6 +51,87 @@ uv run uvicorn main:app --reload
 ```
 This guarantees it runs inside uv’s managed environment.
 
+## Switching from SQLite to PostgreSQL (Development Setup)
+
+This project originally used **SQLite** for local development, but has been migrated to **PostgreSQL** for improved performance and production readiness. **Alembic** is used to manage database migrations, and async SQLAlchemy with ```asyncpg``` ensures efficient asynchronous database operations. The steps below guide developers to set up their development environment so it mirrors production best practices.
+
+### Step-by-Step Setup
+
+1. **Install PostgreSQL** on your machine.
+
+2. **Create a development database**, e.g., ```blogdb``.
+
+3. **Update connection strings**:
+
+- database.py →
+```
+SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://<username>:<password>@<host>:<port>/blogdb"
+```
+
+- ```alembic.ini`` → set the same URL under ```sqlalchemy.url```.
+
+4. **Install Alembic** (if not already installed):
+```
+uv add alembic
+```
+
+5. **Generate initial migration** from your SQLAlchemy models:
+```
+uv run alembic revision --autogenerate -m "initial migration"
+```
+
+6. **Apply migration** to create tables in the database:
+```
+uv run alembic upgrade head
+```
+
+7. **Start FastAPI server**:
+```
+uv run uvicorn main:app --reload
+```
+
+8. **Verify API**: open http://127.0.0.1:8000/docs
+ in your browser.
+
+This ensures your development environment is fully configured for PostgreSQL and ready for asynchronous operations, while keeping your schema in sync using Alembic migrations.
+
+### Securely Loading the Database URL
+
+For security and portability, you should avoid hardcoding passwords in your code. Instead, store your database URL in an environment variable and load it in database.py:
+```
+import os
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase
+
+SQLALCHEMY_DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql+asyncpg://postgres:pgAdmin@localhost:5433/blogdb"  # fallback for dev
+)
+
+engine = create_async_engine(SQLALCHEMY_DATABASE_URL, echo=True)
+
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)
+
+class Base(DeclarativeBase):
+    pass
+
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        yield session
+
+```
+Set the environment variable in your shell before running the server:
+```
+# Windows PowerShell
+$env:DATABASE_URL="postgresql+asyncpg://postgres:yourpassword@localhost:5433/blogdb"
+```
+
+This keeps your credentials out of the source code and ensures other developers can use their own database configuration securely.
+
 
 
 
