@@ -45,6 +45,11 @@ uv fastapi run dev main.py
 ```
 **dev** mode gives us automatic reload of the web server when code is changed.
 Open a browser window with the url **localhost:8000** to view the web application.
+Or use,
+```
+uv run uvicorn main:app --reload
+```
+This guarantees it runs inside uv’s managed environment.
 
 
 
