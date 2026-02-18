@@ -6,8 +6,8 @@ SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://postgres:pgAdmin@localhost:5433/
 
 engine = create_async_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-)   # engine is the connection to the database
+    echo=True,  # Set to False in production
+) # engine is the connection to the database
 
 # SessionLocal is a factory that creates database sessions.
 # A session is a transaction with the database
