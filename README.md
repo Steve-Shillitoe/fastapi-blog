@@ -68,7 +68,7 @@ This project originally used **SQLite** for local development, but has been migr
 SQLALCHEMY_DATABASE_URL = "postgresql+asyncpg://<username>:<password>@<host>:<port>/blogdb"
 ```
 
-- ```alembic.ini`` → set the same URL under ```sqlalchemy.url```.
+- ```alembic.ini``` → set the same URL under ```sqlalchemy.url```.
 
 4. **Install Alembic** (if not already installed):
 ```
@@ -131,6 +131,7 @@ $env:DATABASE_URL="postgresql+asyncpg://postgres:yourpassword@localhost:5433/blo
 ```
 
 This keeps your credentials out of the source code and ensures other developers can use their own database configuration securely.
+
 
 
 
