@@ -316,50 +316,47 @@
     </script>
 
     <!-- Create Post Form Handler -->
-    <script type="module">
-        import {
-        getErrorMessage,
-        hideModal,
-        showModal,
-        } from "/static/js/utils.js";
+   <script type="module">
+import { getErrorMessage, hideModal, showModal } from "/static/js/utils.js";
+import { getToken } from "/static/js/auth.js";
 
-        import {getToken} from "/static/js/auth.js";
+const createForm = document.getElementById("createPostForm");
 
-        const createForm = document.getElementById("createPostForm");
+createForm.addEventListener("submit", async (event) => {
+    event.preventDefault(); // prevent normal form submission
 
-        createForm.addEventListener("submit", async (event) => {
-        // Stop default form submission - we'll handle it with JavaScript
-        event.preventDefault();
+    const token = getToken();
+    if (!token) {
+        // If not logged in, redirect
+        window.location.href = '/login';
+        return;
+    }
 
-        const token = getToken();
-        if (!token) {
+    // Gather form values into an object
+    const formData = new FormData(createForm);
+    const postData = Object.fromEntries(formData.entries());
+
+    try {
+        // Send POST request with proper Authorization header (backticks!)
+        const response = await fetch("/api/posts", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`, // FIXED
+            },
+            body: JSON.stringify(postData),
+        });
+
+        if (response.status === 401) {
+            // Unauthorized → redirect to login
             window.location.href = '/login';
             return;
         }
 
-        // Gather form values into a plain object {title: "...", content: "..."}
-        const formData = new FormData(createForm);
-        const postData = Object.fromEntries(formData.entries());
-
-        try {
-            // POST to our API as JSON
-            const response = await fetch("/api/posts", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer ${token}",
-            },
-
-            body: JSON.stringify(postData),
-            });
-
-            if (response.status === 401) {
-                window.location.href = '/login';
-                return;
-                }
-
-            if (response.ok) {
+        if (response.ok) {
             const data = await response.json();
+
+            // Show success modal
             document.getElementById("successMessage").textContent =
                 `Post "${data.title}" created successfully!`;
 
@@ -369,31 +366,30 @@
             // Clear form
             createForm.reset();
 
-            // Reload page after modal is hidden to show new post
-            document
-                .getElementById("successModal")
-                .addEventListener(
+            // Reload page after modal closes
+            document.getElementById("successModal").addEventListener(
                 "hidden.bs.modal",
-                () => {
-                    window.location.reload();
-                },
-                { once: true },
-                );
-            } else {
+                () => window.location.reload(),
+                { once: true }
+            );
+        } else {
+            // Handle server errors
             const error = await response.json();
             document.getElementById("errorMessage").textContent =
                 getErrorMessage(error);
 
             hideModal("createPostModal");
             showModal("errorModal");
-            }
-        } catch (error) {
-            document.getElementById("errorMessage").textContent =
-            "Network error. Please check your connection and try again.";
-            showModal("errorModal");
         }
-        });
-    </script>
+    } catch (err) {
+        // Network or unexpected error
+        document.getElementById("errorMessage").textContent =
+            "Network error. Please check your connection and try again.";
+        showModal("errorModal");
+    }
+});
+</script>
+
 
     {% block scripts %}
     {% endblock scripts %}
