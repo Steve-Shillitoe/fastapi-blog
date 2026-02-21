@@ -132,6 +132,11 @@ $env:DATABASE_URL="postgresql+asyncpg://postgres:yourpassword@localhost:5433/blo
 
 This keeps your credentials out of the source code and ensures other developers can use their own database configuration securely.
 
+## Running Unit Tests
+To run the user and posts unit tests, in a VS Code terminal type,
+```
+python -m pytest
+```
 
 
 
