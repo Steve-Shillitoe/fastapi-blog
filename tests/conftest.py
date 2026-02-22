@@ -7,6 +7,41 @@ from httpx import ASGITransport
 from main import app
 from database import Base, get_db
 
+
+# ---------------------------------------
+# Fixture: Create a test user
+# ---------------------------------------
+@pytest_asyncio.fixture
+async def test_user(client):
+    user_data = {
+        "username": "postuser",
+        "email": "post@example.com",
+        "password": "password123"
+    }
+
+    await client.post("/api/users", json=user_data)
+    return user_data
+
+
+# ---------------------------------------
+# Fixture: Log in and return auth headers
+# ---------------------------------------
+@pytest_asyncio.fixture
+async def auth_headers(client, test_user):
+    login = await client.post(
+        "/api/users/token",
+        data={
+            "username": test_user["email"],  # using email as username field
+            "password": test_user["password"],
+        },
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+
+    token = login.json()["access_token"]
+
+    return {"Authorization": f"Bearer {token}"}
+
+
 # -----------------------------
 # 1️⃣ Define a separate test DB
 # -----------------------------
