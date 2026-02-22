@@ -141,6 +141,10 @@ To run the user and posts unit tests,
 ```
 python -m pytest
 ```
+To get a report on code coverage when testing
+```
+python -m pytest --cov=.
+```
 
 
 
