@@ -29,7 +29,7 @@ async def create_user(user: UserCreate, db: Annotated[AsyncSession, Depends(get_
     result = await db.execute(
         select(User).where(func.lower(User.username) == user.username.lower()),
     ) # compare lower case usernames
-    existing_user = result.scalars().first()    
+    existing_user = result.scalars().first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -130,14 +130,12 @@ async def update_user(
     user_update: UserUpdate,
     current_user:CurrentUser,
     db: Annotated[AsyncSession, Depends(get_db)],
-):
-    
+):    
     if user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorised to update this post",
-        )
-    
+        )    
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalars().first()
     if not user:
