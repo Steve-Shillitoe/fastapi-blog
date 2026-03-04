@@ -10,3 +10,6 @@ wheels/
 .venv
 *.db
 .env
+
+ media/profile_pics/*
+ 
