@@ -57,3 +57,12 @@ class PostResponse(PostBase):
     user_id: int
     date_posted: datetime
     author: UserPublic
+
+
+## Paginated Post Response Schema
+class PaginatedPostsResponse(BaseModel):
+    posts: list[PostResponse] ## List of posts for the current page
+    total: int ## Total number of posts available in the database
+    skip: int ## Number of posts skipped (offset) for pagination
+    limit: int ## Maximum number of posts returned in the current page (page size)
+    has_more: bool  ## Indicates if there are more posts to fetch beyond the current page
