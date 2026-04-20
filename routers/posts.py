@@ -15,7 +15,7 @@ router = APIRouter()
 @router.get("", response_model=PaginatedPostsResponse)
 async def get_posts(db: Annotated[AsyncSession, Depends(get_db)],
                     skip: Annotated[int, Query(ge=0)] = 0,
-                    limit: Annotated[int, Query(ge=1, le=100)] = 10,):
+                    limit: Annotated[int, Query(ge=1, le=100)] = 2,):
     ## Get total count of posts for pagination metadata
     count_result = await db.execute(select(func.count()).select_from(models.Post))
     total = count_result.scalar() or 0
