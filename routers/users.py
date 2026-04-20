@@ -6,7 +6,7 @@ from sqlalchemy import select, func #func for case insensitive SQL queries
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from PIL import UnidentifiedImageError
-from import User, Post
+from models import User, Post
 from database import get_db
 from schemas import PostResponse, UserCreate, UserUpdate, UserPrivate, UserPublic, Token, PaginatedPostsResponse
 from datetime import timedelta
