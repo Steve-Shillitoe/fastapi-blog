@@ -66,3 +66,18 @@ class PaginatedPostsResponse(BaseModel):
     skip: int ## Number of posts skipped (offset) for pagination
     limit: int ## Maximum number of posts returned in the current page (page size)
     has_more: bool  ## Indicates if there are more posts to fetch beyond the current page
+
+
+## Password Reset Schemas
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr = Field(max_length=120)
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(min_length=8)
+
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str = Field(min_length=8)
