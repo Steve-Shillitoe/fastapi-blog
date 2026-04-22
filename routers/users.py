@@ -1,21 +1,44 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, Query
+from fastapi import (APIRouter, 
+                     BackgroundTasks,
+                     Depends, 
+                     HTTPException, 
+                     status, 
+                     UploadFile, 
+                     Query)
+
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select, func #func for case insensitive SQL queries
+from sqlalchemy import delete as sql_delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from PIL import UnidentifiedImageError
 from models import User, Post
 from database import get_db
-from schemas import PostResponse, UserCreate, UserUpdate, UserPrivate, UserPublic, Token, PaginatedPostsResponse
-from datetime import timedelta
+from schemas import (PostResponse, 
+                     UserCreate, 
+                     UserUpdate, 
+                     UserPrivate, 
+                     UserPublic, 
+                     Token, 
+                     PaginatedPostsResponse,
+                     ChangePasswordRequest,
+                     ForgotPasswordRequest,
+                     ResetPasswordRequest,   
+                     )
+from datetime import timedelta, datetime, UTC
+
 from auth import (
+    generate_reset_token,
+    hash_reset_token,
     create_access_token,
     hash_password,
     CurrentUser,
     verify_password,
 )
+from email_utils import send_password_reset_email
+
 from starlette.concurrency import run_in_threadpool
 from image_utils import process_profile_image, delete_profile_image
 from config import settings
