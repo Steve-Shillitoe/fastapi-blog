@@ -1,17 +1,16 @@
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase
 import os
+from config import settings
 
-#SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./blog.db"  # blog.db is the database file
+
 # Load the database URL from the environment variable
-SQLALCHEMY_DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://postgres:pgAdmin@localhost:5433/blogdb"  # fallback for dev
-)
-engine = create_async_engine(
-    SQLALCHEMY_DATABASE_URL,
-    echo=True,  # Set to False in production
-) # engine is the connection to the database
+#SQLALCHEMY_DATABASE_URL = os.getenv(
+ #   "DATABASE_URL",
+ #   "postgresql+asyncpg://postgres:pgAdmin@localhost:5433/blogdb"  # fallback for dev
+#)
+
+engine = create_async_engine(settings.database_url) # engine is the connection to the database
 
 # SessionLocal is a factory that creates database sessions.
 # A session is a transaction with the database
