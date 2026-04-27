@@ -240,8 +240,8 @@ async def change_password(
     current_user.password_hash = hash_password(password_data.new_password)
 
     await db.execute(
-        sql_delete(models.PasswordResetToken).where(
-            models.PasswordResetToken.user_id == current_user.id,
+        sql_delete(PasswordResetToken).where(
+            PasswordResetToken.user_id == current_user.id,
         ),
     )
 
