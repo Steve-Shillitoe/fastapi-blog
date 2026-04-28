@@ -55,6 +55,9 @@ class Post(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+    
+    # New likes field with default value of 0
+    likes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     # String reference ("User" not User) prevents circular import / early evaluation issues
     # when SQLAlchemy resolves relationships during model loading.
