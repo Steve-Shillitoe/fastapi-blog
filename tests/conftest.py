@@ -1,104 +1,152 @@
-import asyncio
-import pytest_asyncio
-from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+import os
+from collections.abc import AsyncGenerator
+
+## Test DB and AWS S3 Bucket
+os.environ["DATABASE_URL"] = (
+    "postgresql+psycopg://postgres:pgAdmin@localhost/test_blog"
+)
+os.environ["S3_BUCKET_NAME"] = "test-bucket"
+os.environ["SECRET_KEY"] = "test-secret-key-for-testing-only"
+
+## Dummy S3/AWS Credentials
+os.environ["S3_ACCESS_KEY_ID"] = "testing"
+os.environ["S3_SECRET_ACCESS_KEY"] = "testing"
+os.environ["S3_REGION"] = "eu-north-1"
+
+os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+os.environ["AWS_DEFAULT_REGION"] = "eu-north-1"
+
+import boto3
+import pytest
+from httpx import ASGITransport, AsyncClient
+from moto import mock_aws
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
-from httpx import ASGITransport
-from main import app
+
 from database import Base, get_db
+from main import app
+
+pytest_plugins = ["anyio"]
+
+@pytest.fixture(scope="session")
+def anyio_backend():
+    return "asyncio"
 
 
-# ---------------------------------------
-# Fixture: Create a test user
-# ---------------------------------------
-@pytest_asyncio.fixture
-async def test_user(client):
-    user_data = {
-        "username": "postuser",
-        "email": "post@example.com",
-        "password": "password123"
-    }
-
-    await client.post("/api/users", json=user_data)
-    return user_data
-
-
-# ---------------------------------------
-# Fixture: Log in and return auth headers
-# ---------------------------------------
-@pytest_asyncio.fixture
-async def auth_headers(client, test_user):
-    login = await client.post(
-        "/api/users/token",
-        data={
-            "username": test_user["email"],  # using email as username field
-            "password": test_user["password"],
-        },
-        headers={"Content-Type": "application/x-www-form-urlencoded"},
+## Test Engine 
+@pytest.fixture(scope="session")
+def test_engine():
+    engine = create_async_engine(
+        os.environ["DATABASE_URL"],
+        poolclass=NullPool,
     )
-
-    token = login.json()["access_token"]
-
-    return {"Authorization": f"Bearer {token}"}
+    return engine
 
 
-# -----------------------------
-# 1️⃣ Define a separate test DB
-# -----------------------------
-TEST_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+## Setup Database and Tear Down
+@pytest.fixture(scope="session")
+async def setup_database(test_engine):
+    async with test_engine.begin() as conn:
+        # create_all is a synchronous method, so  we use run_sync to call it in async context
+        await conn.run_sync(Base.metadata.create_all) 
 
-# Create async engine for test DB
-# NullPool avoids SQLite locking issues during async tests
-engine = create_async_engine(
-    TEST_DATABASE_URL,
-    poolclass=NullPool,
-)
+    yield # Run tests here
 
-# Create session factory for test database
-TestingSessionLocal = async_sessionmaker(
-    engine,
-    expire_on_commit=False,  # Prevent objects from expiring after commit
-)
-
-# ---------------------------------------------------
-# 2️⃣ Create tables before tests and drop after tests
-# ---------------------------------------------------
-@pytest_asyncio.fixture(scope="session", autouse=True)
-async def create_test_db():
-    # Create all tables at start of test session
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    yield  # Run tests here
-
-    # Drop all tables after test session ends
-    async with engine.begin() as conn:
+    async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
-
-# ---------------------------------------------------
-# 3️⃣ Override FastAPI DB dependency with test DB
-# ---------------------------------------------------
-async def override_get_db():
-    # Provide test session instead of real DB session
-    async with TestingSessionLocal() as session:
-        yield session
+    await test_engine.dispose()
 
 
-# Tell FastAPI to use test DB instead of production DB
-app.dependency_overrides[get_db] = override_get_db
+## DB Session (Transactional Rollback)
+@pytest.fixture
+async def db_session(
+    test_engine,
+    setup_database,
+) -> AsyncGenerator[AsyncSession]:
+    conn = await test_engine.connect()
+    trans = await conn.begin()
+
+    test_async_session = async_sessionmaker(
+        bind=conn,
+        class_=AsyncSession,
+        expire_on_commit=False,
+        join_transaction_mode="create_savepoint",
+    )
+
+    async with test_async_session() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+            await trans.rollback()
+            await conn.close()
+
+## Mock S3 with Moto
+@pytest.fixture
+def mocked_aws():
+    with mock_aws():
+        s3 = boto3.client("s3", region_name="eu-north-1")
+        s3.create_bucket(Bucket=os.environ["S3_BUCKET_NAME"])
+        yield s3
 
 
-# ---------------------------------------------------
-# 4️⃣ Create reusable async test client
-# ---------------------------------------------------
-@pytest_asyncio.fixture
-async def client():
-    # ASGITransport allows calling FastAPI app without running server
-    transport = ASGITransport(app=app)
+## Client Fixture
+@pytest.fixture
+async def client(
+    db_session: AsyncSession,
+    mocked_aws,
+) -> AsyncGenerator[AsyncClient]:
+
+    async def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
 
     async with AsyncClient(
-        transport=transport,
-        base_url="http://test"
+        transport=ASGITransport(app=app),
+        base_url="http://test",
     ) as ac:
-        yield ac  # Provide client to tests
+        yield ac
+
+    app.dependency_overrides.clear()
+
+
+## Auth Helpers
+async def create_test_user(
+    client: AsyncClient,
+    username: str = "testuser",
+    email: str = "test@example.com",
+    password: str = "testpassword123",
+) -> dict:
+    response = await client.post(
+        "/api/users",
+        json={
+            "username": username,
+            "email": email,
+            "password": password,
+        },
+    )
+    assert response.status_code == 201, f"Failed to create user: {response.text}"
+    return response.json()
+
+
+async def login_user(
+    client: AsyncClient,
+    email: str = "test@example.com",
+    password: str = "testpassword123",
+) -> str:
+    response = await client.post(
+        "/api/users/token",
+        data={
+            "username": email,
+            "password": password,
+        },
+    )
+    assert response.status_code == 200, f"Failed to login: {response.text}"
+    return response.json()["access_token"]
+
+
+def auth_header(token: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {token}"}
