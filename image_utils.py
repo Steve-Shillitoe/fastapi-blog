@@ -63,6 +63,7 @@ def _delete_from_s3(key: str) -> None:
 ## Async S3 wrappers for image_utils.py
 async def upload_profile_image(file_bytes: bytes, filename: str) -> None:
     key = f"profile_pics/{filename}"
+    # Run the blocking S3 upload in a thread to avoid blocking the event loop
     await run_in_threadpool(_upload_to_s3, file_bytes, key)
 
 
@@ -70,4 +71,5 @@ async def delete_profile_image(filename: str | None) -> None:
     if filename is None:
         return
     key = f"profile_pics/{filename}"
+    # Run the blocking S3 upload in a thread to avoid blocking the event loop
     await run_in_threadpool(_delete_from_s3, key)
