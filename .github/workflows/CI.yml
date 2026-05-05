@@ -36,3 +36,7 @@ jobs:
       - name: Run tests with coverage
         run: |
           uv run pytest --cov=. --cov-report=term-missing --cov-fail-under=70
+          env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
