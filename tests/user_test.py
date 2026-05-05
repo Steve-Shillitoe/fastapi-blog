@@ -1,5 +1,8 @@
 import pytest
 
+"""Tests for user-related API endpoints, including user creation, login, and deletion. 
+        as well as testing authorization and error handling. 
+        The tests use pytest and httpx for making async requests"""
 
 # ---------------------------------------------------
 # Test: Create a new user
