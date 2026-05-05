@@ -21,7 +21,15 @@ async def test_get_posts(client):
     response = await client.get("/api/posts")
 
     assert response.status_code == 200
-    assert isinstance(response.json(), list)
+
+    data = response.json()
+
+    assert isinstance(data, dict)
+    assert "posts" in data
+    assert isinstance(data["posts"], list)
+    assert "skip" in data
+    assert "limit" in data
+    assert "has_more" in data
 
 
 @pytest.mark.asyncio
