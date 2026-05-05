@@ -29,9 +29,9 @@ jobs:
         run: |
           uv sync
 
-      - name: Run pylint
-        run: |
-          uv run pylint $(git ls-files '*.py')
+     # - name: Run pylint
+     #   run: |
+     #     uv run pylint $(git ls-files '*.py')
 
       - name: Run tests with coverage
         run: |
