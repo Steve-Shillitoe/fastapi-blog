@@ -8,6 +8,18 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 from config import settings
 
+"""
+This file defines the SQLAlchemy models for the application, 
+including User, Post, and PasswordResetToken.
+The User model represents users of the application, 
+with fields for username, email, password hash, and profile image. The Post model represents blog posts, with fields for title, content, author, and likes. The PasswordResetToken model is used for handling password reset functionality, storing tokens and their expiration times.
+The models use relationships to link users to their posts and password reset tokens, 
+and include cascade options to ensure related records are properly managed 
+when users are deleted. The User model also includes a property to generate 
+the full URL for the user's profile image stored in S3. Overall, 
+these models form the core data structure for the application's user 
+and post management features."""
+
 class User(Base):
     __tablename__ = "users"
 
