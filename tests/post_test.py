@@ -1,5 +1,8 @@
 import pytest
-
+""" This file is for testing the Post endpoints of the FastAPI application.
+ It includes tests for creating, retrieving, updating, and deleting posts, 
+ as well as testing authorization and error handling. 
+ The tests use pytest and httpx for making async requests"""
 
 @pytest.mark.asyncio
 async def test_create_post(client, auth_headers):
