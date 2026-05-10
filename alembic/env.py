@@ -1,7 +1,7 @@
 import asyncio
 from logging.config import fileConfig
 
-from sqlalchemy import pool
+from sqlalchemy import pool, engine_from_config
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
@@ -18,6 +18,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+
 
 
 def run_migrations_offline() -> None:
@@ -42,21 +43,43 @@ def do_run_migrations(connection: Connection) -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+# Note: The async version of run_migrations_online is commented out 
+# because Alembic's support for async migrations is still experimental 
+# and may require additional setup. You can uncomment and adjust it
+#  as needed when you're ready to use async migrations.
+# async def run_migrations_online() -> None:
+#     connectable = async_engine_from_config(
+#         config.get_section(config.config_ini_section),
+#         prefix="sqlalchemy.",
+#         poolclass=pool.NullPool,
+#     )
 
-async def run_migrations_online() -> None:
-    connectable = async_engine_from_config(
+#     async with connectable.connect() as connection:
+#         await connection.run_sync(do_run_migrations)
+
+#     await connectable.dispose()
+
+
+# if context.is_offline_mode():
+#     run_migrations_offline()
+# else:
+#     asyncio.run(run_migrations_online())
+
+def run_migrations_online():
+    connectable = engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
-    async with connectable.connect() as connection:
-        await connection.run_sync(do_run_migrations)
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+        )
 
-    await connectable.dispose()
+        with context.begin_transaction():
+            context.run_migrations()
 
 
-if context.is_offline_mode():
-    run_migrations_offline()
-else:
-    asyncio.run(run_migrations_online())
+run_migrations_online()

@@ -1,20 +1,22 @@
+import os
 from pydantic import SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8"
+        env_file=".env" if os.path.exists(".env") else None,
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=False,
     )
 
-    database_url:str
-    
+    database_url: str
+
     secret_key: SecretStr
-    algorithm:str = "HS256"
+    algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
 
-    
     s3_bucket_name: str
     s3_region: str = "eu-north-1"
     s3_access_key_id: SecretStr | None = None
@@ -22,11 +24,9 @@ class Settings(BaseSettings):
     s3_endpoint_url: str | None = None
 
     max_upload_size_bytes: int = 5 * 1024 * 1024  # 5 MB
-
     posts_per_page: int = 2
-
     reset_token_expire_minutes: int = 60
-    
+
     mail_server: str = "localhost"
     mail_port: int = 587
     mail_username: str = ""
@@ -36,4 +36,5 @@ class Settings(BaseSettings):
 
     frontend_url: str = "http://localhost:8000"
 
-settings = Settings()   #Loaded from .env file
+
+settings = Settings()
