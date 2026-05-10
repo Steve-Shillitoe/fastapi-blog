@@ -6,9 +6,9 @@
 
     <!-- Site Info -->
     {% if title %}
-      <title>Steve`s Blog - {{ title }}</title>
+      <title>FastApi Blog - {{ title }}</title>
     {% else %}
-      <title>Steve`s Blog</title>
+      <title>FastApi Blog</title>
     {% endif %}
     <meta name="description" content="FastAPI Tutorial">
     <meta name="author" content="Corey Schafer">
@@ -74,7 +74,7 @@
       <nav class="navbar navbar-expand-md bg-steel fixed-top"
            data-bs-theme="dark">
         <div class="container">
-          <a class="navbar-brand me-4" href="{{ url_for('home') }}">Steve`s Blog</a>
+          <a class="navbar-brand me-4" href="{{ url_for('home') }}">FastApi Blog</a>
           <button class="navbar-toggler"
                   type="button"
                   data-bs-toggle="collapse"
@@ -140,22 +140,11 @@
 
     <main role="main" class="container">
       <div class="row">
-        <div class="col-md-8">
+        <div class="col-12">
           {% block content %}
           {% endblock content %}
         </div>
-        <aside class="col-md-4">
-          <div class="content-section py-3 px-4 mb-4">
-            <h3>Our Sidebar</h3>
-            <p class="text-body-secondary">You can put any information here you'd like.</p>
-            <ul class="list-group">
-              <li class="list-group-item">Latest Posts</li>
-              <li class="list-group-item">Announcements</li>
-              <li class="list-group-item">Calendars</li>
-              <li class="list-group-item">etc</li>
-            </ul>
-          </div>
-        </aside>
+        
       </div>
     </main>
 
