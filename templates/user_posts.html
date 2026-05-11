@@ -7,21 +7,21 @@
         <div class="d-flex align-items-start gap-4">
           <img class="rounded-circle article-img flex-shrink-0"
                src="{{ post.author.image_path }}"
-               alt="{{ post.author.username }}'s profile picture"
+               alt="{{ post.author.username | escape }}'s profile picture"
                width="64"
                height="64"
                loading="lazy">
           <div class="flex-grow-1">
             <div class="article-metadata mb-2">
               <a class="me-2"
-                 href="{{ url_for('user_posts', user_id=post.author.id) }}">{{ post.author.username }}</a>
+                 href="{{ url_for('user_posts', user_id=post.author.id) }}">{{ post.author.username | escape }}</a>
               <small class="text-body-secondary">{{ post.date_posted.strftime("%B %d, %Y") }}</small>
             </div>
             <h2>
               <a class="article-title"
-                 href="{{ url_for('post_page', post_id=post.id) }}">{{ post.title }}</a>
+                 href="{{ url_for('post_page', post_id=post.id) }}">{{ post.title | escape }}</a>
             </h2>
-            <p class="article-content">{{ post.content }}</p>
+            <p class="article-content">{{ post.content | escape }}</p>
           </div>
         </div>
       </article>
@@ -39,76 +39,16 @@
 
 {% block scripts %}
   <script type="module">
-  import { escapeHtml, formatDate } from '/static/js/utils.js';
+  import { initUserPosts } from "/static/js/userPosts.js";
 
-  const userId = {{ user.id }};
-  let currentOffset = {{ limit }};
-  const limit = {{ limit }};
-  let hasMore = {{ 'true' if has_more else 'false' }};
-
-  const postsContainer = document.getElementById('postsContainer');
-  const loadMoreBtn = document.getElementById('loadMoreBtn');
-
-  function createPostHTML(post) {
-    return `
-      <article class="content-section py-3 px-4 mb-4">
-        <div class="d-flex align-items-start gap-4">
-          <img class="rounded-circle article-img flex-shrink-0" src="${escapeHtml(post.author.image_path)}" alt="${escapeHtml(post.author.username)}'s profile picture" width="64" height="64" loading="lazy">
-          <div class="flex-grow-1">
-            <div class="article-metadata mb-2">
-              <a class="me-2" href="/users/${post.author.id}/posts">${escapeHtml(post.author.username)}</a>
-              <small class="text-body-secondary">${formatDate(post.date_posted)}</small>
-            </div>
-            <h2>
-              <a class="article-title" href="/posts/${post.id}">${escapeHtml(post.title)}</a>
-            </h2>
-            <p class="article-content">${escapeHtml(post.content)}</p>
-          </div>
-        </div>
-      </article>
-    `;
-  }
-
-  async function loadMorePosts() {
-    loadMoreBtn.disabled = true;
-    loadMoreBtn.textContent = 'Loading...';
-
-    let errorOccurred = false;
-
-    try {
-      const response = await fetch(`/api/users/${userId}/posts?skip=${currentOffset}&limit=${limit}`);
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch posts');
-      }
-
-      const data = await response.json();
-
-      for (const post of data.posts) {
-        postsContainer.insertAdjacentHTML('beforeend', createPostHTML(post));
-      }
-
-      currentOffset += data.posts.length;
-      hasMore = data.has_more;
-
-      if (!hasMore) {
-        loadMoreBtn.classList.add('d-none');
-      }
-    } catch (error) {
-      errorOccurred = true;
-      console.error('Error loading posts:', error);
-      loadMoreBtn.textContent = 'Error - Click to Retry';
-      loadMoreBtn.disabled = false;
-    } finally {
-      if (!errorOccurred && hasMore) {
-        loadMoreBtn.disabled = false;
-        loadMoreBtn.textContent = 'Load More Posts';
-      }
+  initUserPosts({
+    userId: {{ user.id }},
+    limit: {{ limit }},
+    hasMore: {{ has_more|tojson }},
+    urls: {
+      userPosts: "{{ url_for('user_posts', user_id='__USER_ID__') }}",
+      postPage: "{{ url_for('post_page', post_id='__POST_ID__') }}"
     }
-  }
-
-  if (loadMoreBtn) {
-    loadMoreBtn.addEventListener('click', loadMorePosts);
-  }
-  </script>
+  });
+</script>
 {% endblock scripts %}
