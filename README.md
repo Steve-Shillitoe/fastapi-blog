@@ -198,7 +198,7 @@ docker push <ecr-repo-url>:latest
 2. The ECS service is updated to use the new task definition
 3. ECS pulls the image from ECR and starts a new container
 4. **Force new deployment** ensures running tasks are replaced with the updated version
-5. 
+   
 ### Networking & HTTPS
 - The Application Load Balancer handles HTTPS termination using an AWS Certificate Manager (ACM) certificate
 - Traffic from ALB to ECS runs over HTTP within the private AWS network
