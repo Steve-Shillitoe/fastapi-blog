@@ -32,4 +32,12 @@ ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 
 # CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--proxy-headers"]  development
+
+# Start the FastAPI application using Uvicorn when the container launches.
+# "main:app" tells Uvicorn to import the object named `app` from main.py.
+# "--host 0.0.0.0" binds the server to all network interfaces so it is reachable
+# from outside the container (required for Docker / ECS / Kubernetes networking).
+# "--port 8000" exposes the app on port 8000 inside the container.
+# The JSON array (exec form) ensures the process receives OS signals directly,
+# allowing graceful shutdowns and proper handling in container environments.
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
