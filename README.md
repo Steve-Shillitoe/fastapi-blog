@@ -148,7 +148,20 @@ python -m pytest --cov=.
 ## Hosting the blogging web application on the Amazon Web Service cloud platform
 This application is containerised using Docker and deployed to AWS using Amazon Elastic Container Service (ECS) 
 with images stored in Amazon Elastic Container Registry (ECR). An Application Load Balancer (ALB) is used to 
-route external HTTPS traffic to the running container.
+route external HTTPS traffic to the running container. 
+
+The FastAPI application running inside the ECS Fargate container connects directly to Amazon RDS using a PostgreSQL connection string. ECS itself is not involved in database communication; it is only responsible for running and managing the container.
+
+The FastAPI application running inside the ECS Fargate container uploads and retrieves profile images directly to and from Amazon S3 using the AWS SDK and IAM permissions.
+
+### Architecture Overview
+ - FastAPI application runs inside a Docker container
+ - Docker image is built locally and pushed to Amazon ECR
+ - ECS (Fargate) runs the container in a managed service
+ - Application Load Balancer (ALB) exposes the service publicly over HTTPS
+ - AWS Certificate Manager (ACM) provides SSL/TLS termination at the load balancer
+ - FastAPI app (inside the container) communicates with the database in RDS
+ - FastAPI app (inside the container) retrieves and stores profile images in an S3 bucket
 
 ### What each AWS piece actually does
 
@@ -160,4 +173,33 @@ route external HTTPS traffic to the running container.
 | **Amazon RDS**                              | Database       | Stores blog titles and content                 |
 | **Amazon S3**                               | Object storage | Stores profile images                          |
 
+### Build & Push Workflow
+Ensure Docker Desktop is installed on your local machine.
 
+1. Build Docker image locally.  Open Docker Desktop, navigate to the folder containing the Docker file and open a command prompt:
+```
+docker build -t fastapi-app .
+```
+2. Authenticate Docker to AWS ECR:
+```
+aws ecr get-login-password --region <region> | docker login --username AWS --password-stdin <account-id>.dkr.ecr.<region>.amazonaws.com
+```
+3. Tag image for ECR:
+```
+docker tag fastapi-app:latest <ecr-repo-url>:latest
+```
+4. Push image to ECR:
+```
+docker push <ecr-repo-url>:latest
+```
+
+### Deployment on ECS
+1. A new **ECS task definition revision** is created referencing the latest Docker image in ECR
+2. The ECS service is updated to use the new task definition
+3. ECS pulls the image from ECR and starts a new container
+4. **Force new deployment** ensures running tasks are replaced with the updated version
+5. 
+### Networking & HTTPS
+- The Application Load Balancer handles HTTPS termination using an AWS Certificate Manager (ACM) certificate
+- Traffic from ALB to ECS runs over HTTP within the private AWS network
+- Proper forwarding headers (X-Forwarded-Proto) ensure the application correctly generates HTTPS URLs
