@@ -1,5 +1,5 @@
 # A FastAPI Blogging Web Application
-This web application is built with the Python **FastApi Framework** and it allows users to enter, update & delete blog posts.
+This web application is built with the Python **FastApi Framework** and it allows users to enter, update & delete blog posts.  It is publically available at **https://fastapiblog.net**
 
 **Jinja2 templates** are used to create an HTML frontend for the backend API JSON endpoints. 
 **Template inheritance** with a layout file is utilised to simplify the template files. 
