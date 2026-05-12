@@ -40,4 +40,5 @@ ENV PORT=8080
 # "--port 8000" exposes the app on port 8000 inside the container.
 # The JSON array (exec form) ensures the process receives OS signals directly,
 # allowing graceful shutdowns and proper handling in container environments.
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+#  "--proxy-headers", "--forwarded-allow-ips", "*"  ensure correct URL generation behind ALB
+CMD ["uvicorn", "main:app",   "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "*"]
