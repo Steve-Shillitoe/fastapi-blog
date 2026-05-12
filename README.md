@@ -145,8 +145,19 @@ To get a report on code coverage when testing
 ```
 python -m pytest --cov=.
 ```
+## Hosting the blogging web application on the Amazon Web Service cloud platform
+This application is containerised using Docker and deployed to AWS using Amazon Elastic Container Service (ECS) 
+with images stored in Amazon Elastic Container Registry (ECR). An Application Load Balancer (ALB) is used to 
+route external HTTPS traffic to the running container.
 
+### What each AWS piece actually does
 
-
+| Component                                   | What it is     | What it does                                   |
+| ------------------------------------------- | -------------- | ---------------------------------------------- |
+| **Amazon Elastic Container Registry (ECR)** | Image storage  | Holds your Docker image layers                 |
+| **Amazon Elastic Container Service (ECS)**  | Orchestrator   | Decides *how* and *where* to run containers    |
+| **AWS Fargate**                             | Compute engine | Actually provides CPU/RAM to run the container |
+| **Amazon RDS**                              | Database       | Stores blog titles and content                 |
+| **Amazon S3**                               | Object storage | Stores profile images                          |
 
 
