@@ -147,7 +147,7 @@ python -m pytest --cov=.
 ```
 ## Hosting the blogging web application on the Amazon Web Service cloud platform
 This application is containerised using Docker and deployed to AWS using Amazon Elastic Container Service (ECS) 
-with images stored in Amazon Elastic Container Registry (ECR). An Application Load Balancer (ALB) is used to 
+with docker images stored in Amazon Elastic Container Registry (ECR). An Application Load Balancer (ALB) is used to 
 route external HTTPS traffic to the running container. 
 
 The FastAPI application running inside the ECS Fargate container connects directly to Amazon RDS using a PostgreSQL connection string. ECS itself is not involved in database communication; it is only responsible for running and managing the container.
